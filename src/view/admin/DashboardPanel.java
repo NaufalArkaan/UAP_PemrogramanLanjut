@@ -13,7 +13,7 @@ public class DashboardPanel extends JPanel {
         setBackground(UIStyle.BACKGROUND);
 
         // ===== TITLE =====
-        JLabel title = new JLabel("Dashboard Monitoring");
+        JLabel title = new JLabel("Dashboard Monitoring"); //ini halaman dashboard admin
         title.setFont(UIStyle.TITLE);
         title.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
 
