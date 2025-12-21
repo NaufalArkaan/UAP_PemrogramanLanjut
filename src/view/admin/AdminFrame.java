@@ -1,6 +1,5 @@
 package view.admin;
 
-import view.admin.SidebarPanel;
 import javax.swing.*;
 import java.awt.*;
 import view.auth.LoginFrame;
@@ -32,24 +31,29 @@ public class AdminFrame extends JFrame {
 
         add(topBar, BorderLayout.NORTH);
 
-        // ===== CONTENT (CARD LAYOUT) =====
+        // ===== CONTENT =====
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.setBackground(new Color(245, 246, 250));
 
         contentPanel.add(new DashboardPanel(), "dashboard");
         contentPanel.add(new ReportsPanel(), "laporan");
+        contentPanel.add(new DataPeralatanPanel(), "peralatan"); // 🔥 BARU
 
         add(contentPanel, BorderLayout.CENTER);
+
+        // halaman awal
+        showPage("dashboard");
 
         setVisible(true);
     }
 
-    // ===== INI YANG DIBUTUHKAN SIDEBAR =====
+    // ===== DIPANGGIL SIDEBAR =====
     public void showPage(String page) {
         cardLayout.show(contentPanel, page);
     }
 
+    // ===== LOGOUT DENGAN CONFIRM =====
     public void logout() {
         int confirm = JOptionPane.showConfirmDialog(
                 this,
@@ -60,9 +64,8 @@ public class AdminFrame extends JFrame {
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            dispose();               // tutup AdminFrame
-            new LoginFrame();        // kembali ke login
+            dispose();
+            new LoginFrame();
         }
     }
-
 }

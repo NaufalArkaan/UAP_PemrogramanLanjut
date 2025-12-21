@@ -9,13 +9,13 @@ public class SidebarPanel extends JPanel {
     private final int EXPANDED_WIDTH = 220;
     private final int COLLAPSED_WIDTH = 64;
 
-    private JButton btnDashboard, btnLaporan, btnLogout;
+    private JButton btnDashboard, btnLaporan, btnPeralatan, btnLogout;
     private JLabel lblTitle;
 
     public SidebarPanel(AdminFrame frame) {
 
         setLayout(new BorderLayout());
-        setBackground(new Color(15, 23, 42)); // dark slate
+        setBackground(new Color(15, 23, 42));
         setPreferredSize(new Dimension(EXPANDED_WIDTH, 0));
 
         // ===== HEADER =====
@@ -47,9 +47,12 @@ public class SidebarPanel extends JPanel {
         menu.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
         btnDashboard = createMenuButton("Dashboard", "🏠");
+        btnPeralatan = createMenuButton("Data Peralatan", "🖥");
         btnLaporan = createMenuButton("Riwayat Laporan", "📄");
 
         menu.add(btnDashboard);
+        menu.add(Box.createVerticalStrut(6));
+        menu.add(btnPeralatan);
         menu.add(Box.createVerticalStrut(6));
         menu.add(btnLaporan);
 
@@ -71,9 +74,10 @@ public class SidebarPanel extends JPanel {
 
         // ===== ACTIONS =====
         btnDashboard.addActionListener(e -> frame.showPage("dashboard"));
+        btnPeralatan.addActionListener(e -> frame.showPage("peralatan"));
         btnLaporan.addActionListener(e -> frame.showPage("laporan"));
-        btnHamburger.addActionListener(e -> toggleSidebar());
         btnLogout.addActionListener(e -> frame.logout());
+        btnHamburger.addActionListener(e -> toggleSidebar());
     }
 
     private JButton createMenuButton(String text, String icon) {
@@ -107,12 +111,14 @@ public class SidebarPanel extends JPanel {
             setPreferredSize(new Dimension(COLLAPSED_WIDTH, 0));
             lblTitle.setVisible(false);
             btnDashboard.setText("🏠");
+            btnPeralatan.setText("🖥");
             btnLaporan.setText("📄");
             btnLogout.setText("⏻");
         } else {
             setPreferredSize(new Dimension(EXPANDED_WIDTH, 0));
             lblTitle.setVisible(true);
             btnDashboard.setText("🏠  Dashboard");
+            btnPeralatan.setText("🖥  Data Peralatan");
             btnLaporan.setText("📄  Riwayat Laporan");
             btnLogout.setText("Logout");
         }
