@@ -2,6 +2,7 @@ package model;
 
 //ini user
 //ini user robi
+//ini user 2 robi
 public class User {
     private String username;
     private String password;
