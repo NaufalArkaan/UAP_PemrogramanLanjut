@@ -7,21 +7,22 @@ import java.awt.*;
 public class ActionCellRenderer extends JPanel implements TableCellRenderer {
 
     public ActionCellRenderer() {
-        setLayout(new FlowLayout(FlowLayout.CENTER, 6, 0));
+        setLayout(new GridLayout(1, 3, 6, 0));
         setOpaque(true);
 
-        add(createButton("👁", new Color(59,130,246))); // View
-        add(createButton("✏", new Color(234,179,8)));  // Edit
-        add(createButton("🗑", new Color(220,38,38)));  // Delete
+        add(createButton("View", new Color(59, 130, 246)));
+        add(createButton("Edit", new Color(234, 179, 8)));
+        add(createButton("Hapus", new Color(220, 38, 38)));
     }
 
-    private JButton createButton(String text, Color color) {
+    private JButton createButton(String text, Color bg) {
         JButton btn = new JButton(text);
-        btn.setPreferredSize(new Dimension(36, 26));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setForeground(Color.BLACK);   // 🔥 TEXT HITAM
+        btn.setBackground(bg);
         btn.setFocusPainted(false);
-        btn.setForeground(Color.WHITE);
-        btn.setBackground(color);
-        btn.setBorder(BorderFactory.createEmptyBorder());
+        btn.setBorderPainted(false);
+        btn.setEnabled(false);             // renderer only
         return btn;
     }
 
@@ -33,4 +34,5 @@ public class ActionCellRenderer extends JPanel implements TableCellRenderer {
         setBackground(isSelected ? table.getSelectionBackground() : Color.WHITE);
         return this;
     }
+
 }

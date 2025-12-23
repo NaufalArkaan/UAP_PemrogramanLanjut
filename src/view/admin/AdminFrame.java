@@ -3,9 +3,9 @@ package view.admin;
 import javax.swing.*;
 import java.awt.*;
 import view.auth.LoginFrame;
+import view.admin.DetailLaporanPanel;
 
 public class AdminFrame extends JFrame {
-
     private CardLayout cardLayout;
     private JPanel contentPanel;
 
@@ -67,5 +67,16 @@ public class AdminFrame extends JFrame {
             dispose();
             new LoginFrame();
         }
+    }
+
+    // Tambahkan di AdminFrame.java
+    public void openDetailLaporan(String id) {
+        contentPanel.add(new DetailLaporanPanel(this, id), "detail");
+        cardLayout.show(contentPanel, "detail");
+    }
+
+    public void openTambahData() {
+        contentPanel.add(new TambahDataPeralatanPanel(this), "tambah");
+        cardLayout.show(contentPanel, "tambah");
     }
 }

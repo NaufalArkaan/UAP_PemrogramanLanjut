@@ -8,6 +8,10 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import view.components.ActionCellRenderer;
+import view.components.ActionCellEditor;
+import view.components.StatusCellRenderer;
+
 public class DataPeralatanPanel extends JPanel {
 
     private JTextField txtSearch;
@@ -22,6 +26,14 @@ public class DataPeralatanPanel extends JPanel {
     // ===== DATA =====
     private final List<Object[]> masterData = new ArrayList<>();
     private final List<Object[]> filteredData = new ArrayList<>();
+
+    // ===== SORTING =====
+    private int sortColumn = -1;
+    private boolean ascending = true;
+
+    private final String[] headers = {
+            "ID","Nama","Jenis","Lokasi","Kerusakan","Status","Tanggal","Aksi"
+    };
 
     public DataPeralatanPanel() {
         setLayout(new BorderLayout(0, 12));
@@ -84,6 +96,12 @@ public class DataPeralatanPanel extends JPanel {
         actionBar.add(txtSearch);
         actionBar.add(Box.createHorizontalStrut(12));
         actionBar.add(btnTambah);
+        btnTambah.addActionListener(e -> {
+            Window w = SwingUtilities.getWindowAncestor(this);
+            if (w instanceof AdminFrame frame) {
+                frame.openTambahData();
+            }
+        });
 
         header.add(titleWrap, BorderLayout.NORTH);
         header.add(actionBar, BorderLayout.SOUTH);
@@ -99,13 +117,11 @@ public class DataPeralatanPanel extends JPanel {
 
     // ================= TABLE =================
     private JScrollPane createTable() {
-        String[] kolom = {
-                "ID","Nama","Jenis","Lokasi","Kerusakan","Status","Tanggal","Aksi"
-        };
 
-        tableModel = new DefaultTableModel(kolom, 0) {
+        tableModel = new DefaultTableModel(headers, 0) {
+            @Override
             public boolean isCellEditable(int r, int c) {
-                return c == 7;
+                return c == 7; // hanya kolom Aksi
             }
         };
 
@@ -113,10 +129,67 @@ public class DataPeralatanPanel extends JPanel {
         table.setRowHeight(36);
         table.setFillsViewportHeight(true);
 
-        table.getColumn("Aksi").setCellRenderer(new ActionRenderer());
-        table.getColumn("Aksi").setCellEditor(new ActionEditor());
+        // ===== AKSI =====
+        TableColumn aksiCol = table.getColumn("Aksi");
+        aksiCol.setPreferredWidth(240);
+        aksiCol.setCellRenderer(new ActionCellRenderer());
+        aksiCol.setCellEditor(new ActionCellEditor(table));
+
+        // ===== STATUS =====
+        TableColumn statusCol = table.getColumn("Status");
+        statusCol.setPreferredWidth(120);
+        statusCol.setCellRenderer(new StatusCellRenderer());
+
+        // ===== SORTING HEADER =====
+        table.getTableHeader().addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int col = table.columnAtPoint(e.getPoint());
+                if (col == 7) return; // kolom Aksi tidak sortable
+
+                if (sortColumn == col) {
+                    ascending = !ascending;
+                } else {
+                    sortColumn = col;
+                    ascending = true;
+                }
+
+                applySorting();
+                refreshHeader();
+            }
+        });
 
         return new JScrollPane(table);
+    }
+
+    // ================= SORTING =================
+    private void applySorting() {
+        if (sortColumn < 0) return;
+
+        filteredData.sort((a, b) -> {
+            String v1 = a[sortColumn].toString();
+            String v2 = b[sortColumn].toString();
+
+            int result = v1.compareToIgnoreCase(v2);
+            return ascending ? result : -result;
+        });
+
+        currentPage = 1;
+        loadPage();
+    }
+
+    private void refreshHeader() {
+        TableColumnModel cm = table.getColumnModel();
+        for (int i = 0; i < headers.length; i++) {
+            if (i == sortColumn) {
+                cm.getColumn(i).setHeaderValue(
+                        headers[i] + (ascending ? " ▲" : " ▼")
+                );
+            } else {
+                cm.getColumn(i).setHeaderValue(headers[i]);
+            }
+        }
+        table.getTableHeader().repaint();
     }
 
     // ================= PAGINATION =================
@@ -181,38 +254,7 @@ public class DataPeralatanPanel extends JPanel {
         }
 
         currentPage = 1;
+        applySorting();
         loadPage();
-    }
-
-    // ================= ACTION BUTTON =================
-    private JButton actionButton(String text, Color color) {
-        JButton btn = new JButton(text);
-        btn.setBackground(color);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(6,10,6,10));
-        return btn;
-    }
-
-    class ActionRenderer extends JPanel implements TableCellRenderer {
-        ActionRenderer() {
-            setLayout(new FlowLayout(FlowLayout.CENTER,6,0));
-            setOpaque(true);
-            add(actionButton("👁", new Color(37,99,235)));
-            add(actionButton("✎", new Color(234,179,8)));
-            add(actionButton("🗑", new Color(220,38,38)));
-        }
-        public Component getTableCellRendererComponent(JTable t,Object v,boolean s,boolean f,int r,int c) {
-            setBackground(s ? t.getSelectionBackground() : Color.WHITE);
-            return this;
-        }
-    }
-
-    class ActionEditor extends AbstractCellEditor implements TableCellEditor {
-        JPanel panel = new ActionRenderer();
-        public Component getTableCellEditorComponent(JTable t,Object v,boolean s,int r,int c) {
-            return panel;
-        }
-        public Object getCellEditorValue() { return null; }
     }
 }
