@@ -1,13 +1,22 @@
 package view.admin;
 
+import controller.UserLaporanController;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.io.File;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class TambahDataPeralatanPanel extends JPanel {
 
     private final AdminFrame parent;
+
+    private JTextField txtNama;
+    private JComboBox<String> cbJenis, cbLokasi, cbKerusakan, cbStatus;
+    private JTextArea txtDeskripsi;
+
     private JLabel imagePreview;
     private File selectedImage;
 
@@ -28,8 +37,6 @@ public class TambahDataPeralatanPanel extends JPanel {
         panel.setOpaque(false);
 
         JButton btnBack = new JButton("← Kembali");
-        btnBack.setFocusPainted(false);
-        btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnBack.addActionListener(e -> parent.showPage("peralatan"));
 
         JLabel title = new JLabel("Tambah Data Peralatan");
@@ -51,18 +58,23 @@ public class TambahDataPeralatanPanel extends JPanel {
                 new EmptyBorder(16,16,16,16)
         ));
 
-        card.add(field("ID Peralatan", new JTextField()));
-        card.add(field("Nama Peralatan", new JTextField()));
-        card.add(field("Jenis Peralatan", combo("Komputer","Monitor","Proyektor","Keyboard","Mouse","Printer")));
-        card.add(field("Lokasi", combo("Lab 1","Lab 2","Lab 3","Lab Multimedia")));
-        card.add(field("Jenis Kerusakan", combo("Hardware","Software")));
-        card.add(field("Status", combo("Rusak","Dalam Perbaikan","Normal")));
+        txtNama = new JTextField();
+        cbJenis = combo("Komputer","Monitor","Proyektor","Keyboard","Mouse","Printer");
+        cbLokasi = combo("Lab A","Lab B","Lab C","Lab D","lab E","Lab F");
+        cbKerusakan = combo("Hardware","Software","Jaringan","Kelistrikan");
+        cbStatus = combo("Rusak","Dalam Perbaikan","Normal");
 
-        JTextArea deskripsi = new JTextArea(4,20);
-        deskripsi.setLineWrap(true);
-        deskripsi.setWrapStyleWord(true);
-        deskripsi.setBorder(new LineBorder(new Color(200,200,200)));
-        card.add(field("Deskripsi Kerusakan", new JScrollPane(deskripsi)));
+        txtDeskripsi = new JTextArea(4,20);
+        txtDeskripsi.setLineWrap(true);
+        txtDeskripsi.setWrapStyleWord(true);
+        txtDeskripsi.setBorder(new LineBorder(new Color(200,200,200)));
+
+        card.add(field("Nama Peralatan", txtNama));
+        card.add(field("Jenis Peralatan", cbJenis));
+        card.add(field("Lokasi", cbLokasi));
+        card.add(field("Jenis Kerusakan", cbKerusakan));
+        card.add(field("Status", cbStatus));
+        card.add(field("Deskripsi Kerusakan", new JScrollPane(txtDeskripsi)));
 
         card.add(Box.createVerticalStrut(12));
         card.add(imageSection());
@@ -72,22 +84,16 @@ public class TambahDataPeralatanPanel extends JPanel {
         return card;
     }
 
-    // ================= IMAGE UPLOAD =================
+    // ================= IMAGE =================
     private JPanel imageSection() {
         JPanel panel = new JPanel(new BorderLayout(8,8));
-        panel.setOpaque(false);
         panel.setBorder(new TitledBorder("Foto Kerusakan"));
 
         imagePreview = new JLabel("Belum ada gambar", SwingConstants.CENTER);
-        imagePreview.setPreferredSize(new Dimension(200,150));
+        imagePreview.setPreferredSize(new Dimension(220,150));
         imagePreview.setBorder(new LineBorder(new Color(200,200,200)));
-        imagePreview.setOpaque(true);
-        imagePreview.setBackground(new Color(245,245,245));
 
         JButton btnUpload = new JButton("Pilih Gambar");
-        btnUpload.setFocusPainted(false);
-        btnUpload.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         btnUpload.addActionListener(e -> chooseImage());
 
         panel.add(imagePreview, BorderLayout.CENTER);
@@ -98,18 +104,18 @@ public class TambahDataPeralatanPanel extends JPanel {
 
     private void chooseImage() {
         JFileChooser chooser = new JFileChooser();
-        chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
-                "Image Files", "jpg", "jpeg", "png"
-        ));
+        chooser.setFileFilter(
+                new javax.swing.filechooser.FileNameExtensionFilter(
+                        "Image Files", "jpg","jpeg","png"
+                )
+        );
 
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             selectedImage = chooser.getSelectedFile();
-            ImageIcon icon = new ImageIcon(selectedImage.getAbsolutePath());
 
+            ImageIcon icon = new ImageIcon(selectedImage.getAbsolutePath());
             Image scaled = icon.getImage().getScaledInstance(
-                    imagePreview.getWidth(),
-                    imagePreview.getHeight(),
-                    Image.SCALE_SMOOTH
+                    220,150,Image.SCALE_SMOOTH
             );
 
             imagePreview.setText("");
@@ -117,46 +123,69 @@ public class TambahDataPeralatanPanel extends JPanel {
         }
     }
 
-    // ================= FIELD =================
+    // ================= ACTION =================
+    private JPanel actionButton() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+        JButton btnSave = new JButton("Simpan Data");
+        btnSave.setBackground(new Color(14,64,160));
+        btnSave.setForeground(Color.WHITE);
+
+        btnSave.addActionListener(e -> saveData());
+
+        panel.add(btnSave);
+        return panel;
+    }
+
+    private void saveData() {
+
+        if (txtNama.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(
+                    this, "Nama peralatan wajib diisi"
+            );
+            return;
+        }
+
+        String fotoPath = selectedImage == null
+                ? ""
+                : selectedImage.getAbsolutePath();
+
+        String tanggal = DateTimeFormatter.ofPattern("dd MMMM yyyy")
+                .format(LocalDate.now());
+
+        // 🔥 ID OTOMATIS DI CONTROLLER
+        UserLaporanController.tambahLaporan(
+                txtNama.getText().trim(),
+                cbJenis.getSelectedItem().toString(),
+                cbLokasi.getSelectedItem().toString(),
+                cbKerusakan.getSelectedItem().toString(),
+                txtDeskripsi.getText().trim(),
+                cbStatus.getSelectedItem().toString(),
+                tanggal,
+                fotoPath
+        );
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Data berhasil disimpan",
+                "Sukses",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+
+        parent.showPage("peralatan");
+    }
+
+    // ================= HELPERS =================
     private JPanel field(String label, Component input) {
         JPanel panel = new JPanel(new BorderLayout(8,6));
-        panel.setOpaque(false);
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
-
         JLabel lbl = new JLabel(label);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
-
         panel.add(lbl, BorderLayout.NORTH);
         panel.add(input, BorderLayout.CENTER);
-
         return panel;
     }
 
     private JComboBox<String> combo(String... items) {
         return new JComboBox<>(items);
-    }
-
-    // ================= ACTION =================
-    private JPanel actionButton() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        panel.setOpaque(false);
-
-        JButton btnSave = new JButton("Simpan Data");
-        btnSave.setBackground(new Color(14,64,160));
-        btnSave.setForeground(Color.WHITE);
-        btnSave.setFocusPainted(false);
-        btnSave.setBorder(new EmptyBorder(8,20,8,20));
-
-        btnSave.addActionListener(e -> {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Data berhasil disimpan (UI saja)",
-                    "Info",
-                    JOptionPane.INFORMATION_MESSAGE
-            );
-        });
-
-        panel.add(btnSave);
-        return panel;
     }
 }

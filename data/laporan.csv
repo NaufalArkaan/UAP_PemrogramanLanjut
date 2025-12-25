@@ -1,0 +1,6 @@
+id,nama,jenis,lokasi,kerusakan,deskripsi,status,tanggal,fotopaths
+LPR-01,Pc,Komputer / PC Desktop,LAB-A,Hardware,Bluescreen,Perbaikan,24 December 2025,
+LPR-02,Pc,Komputer / PC Desktop,LAB-A,Software,Tolong diperbaiki yaa,Perbaikan,24 December 2025,data/foto/foto_1766570641872.jpeg
+LPR-03,Laptop,Komputer,Lab A,Hardware,Orangnya suka gigit,Rusak,24 December 2025,C:\Users\ASUS\Downloads\A1.jpeg
+LPR-04,Pc,Komputer,Lab A,Hardware,Rusakk,Rusak,24 December 2025,C:\Users\ASUS\Downloads\A2.jpeg
+LPR-05,proyektor,Kabel,LAB-F,Hardware,parahh,Normal,25 December 2025,data/foto/foto_1766636947699.jpg

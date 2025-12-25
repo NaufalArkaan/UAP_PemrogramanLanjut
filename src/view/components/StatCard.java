@@ -5,6 +5,8 @@ import java.awt.*;
 
 public class StatCard extends JPanel {
 
+    private JLabel lblValue; // 🔥 JADI FIELD
+
     public StatCard(String title, String value, Icon icon, Color accent) {
 
         setLayout(new BorderLayout());
@@ -27,7 +29,7 @@ public class StatCard extends JPanel {
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         add(content, BorderLayout.CENTER);
 
-        // ===== TOP ROW (ICON + VALUE) =====
+        // ===== TOP ROW =====
         JPanel topRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
         topRow.setOpaque(false);
 
@@ -35,12 +37,11 @@ public class StatCard extends JPanel {
         lblIcon.setPreferredSize(new Dimension(32, 32));
         topRow.add(lblIcon);
 
-        JLabel lblValue = new JLabel(value);
-        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 28)); // 🔥 LEBIH TEBAL
+        lblValue = new JLabel(value);
+        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblValue.setForeground(accent);
         topRow.add(lblValue);
 
-        // ===== TITLE =====
         JLabel lblTitle = new JLabel(title);
         lblTitle.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         lblTitle.setForeground(Color.DARK_GRAY);
@@ -48,5 +49,10 @@ public class StatCard extends JPanel {
 
         content.add(topRow);
         content.add(lblTitle);
+    }
+
+    // 🔥 INI YANG DIPAKAI UNTUK RELOAD
+    public void setValue(String value) {
+        lblValue.setText(value);
     }
 }

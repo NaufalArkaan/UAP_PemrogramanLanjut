@@ -1,5 +1,7 @@
 package view.admin;
 
+import controller.UserLaporanController;
+import model.LaporanBarang;
 import util.UIStyle;
 
 import javax.swing.*;
@@ -7,6 +9,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class LaporanPanel extends JPanel {
+
+    private DefaultTableModel model;
 
     public LaporanPanel() {
         setLayout(new BorderLayout());
@@ -16,32 +20,31 @@ public class LaporanPanel extends JPanel {
         title.setFont(UIStyle.TITLE);
         title.setBorder(BorderFactory.createEmptyBorder(20, 20, 10, 20));
 
-        // ===== SEARCH BAR =====
-        JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
-        searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 10, 20));
-        JTextField searchField = new JTextField();
-        JButton btnCari = new JButton("Cari");
-        searchPanel.add(searchField, BorderLayout.CENTER);
-        searchPanel.add(btnCari, BorderLayout.EAST);
-
-        // ===== TABLE =====
         String[] kolom = {"ID", "Peralatan", "Lokasi", "Status", "Tanggal"};
-        DefaultTableModel model = new DefaultTableModel(kolom, 0);
+        model = new DefaultTableModel(kolom, 0);
         JTable table = new JTable(model);
         table.setRowHeight(28);
 
-        model.addRow(new Object[]{"LPR-001", "PC-15", "Lab 1", "Rusak", "14/12/2025"});
-        model.addRow(new Object[]{"LPR-002", "Monitor-22", "Lab 2", "Perbaikan", "13/12/2025"});
+        loadData(); // 🔥 AMBIL DARI CSV
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 20, 20, 20));
 
-        JPanel topWrapper = new JPanel(new BorderLayout());
-        topWrapper.setBackground(UIStyle.BACKGROUND);
-        topWrapper.add(title, BorderLayout.NORTH);
-        topWrapper.add(searchPanel, BorderLayout.SOUTH);
-
-        add(topWrapper, BorderLayout.NORTH);
+        add(title, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
+    }
+
+    private void loadData() {
+        model.setRowCount(0);
+
+        for (LaporanBarang l : UserLaporanController.getAllLaporan()) {
+            model.addRow(new Object[]{
+                    l.getIdLaporan(),
+                    l.getNamaBarang(),
+                    l.getLokasi(),
+                    l.getStatus(),
+                    l.getTanggal()
+            });
+        }
     }
 }

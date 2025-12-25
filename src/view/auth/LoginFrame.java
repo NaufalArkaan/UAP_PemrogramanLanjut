@@ -183,15 +183,18 @@ public class LoginFrame extends JFrame {
 
         if (user == null) {
             JOptionPane.showMessageDialog(this, "Login gagal!");
+            return;
+        }
+
+        dispose();
+
+        if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+            new AdminFrame();
+        } else if ("USER".equalsIgnoreCase(user.getRole())) {
+            new view.user.UserFrame(user);
         } else {
-            dispose();
-            if ("ADMIN".equals(user.getRole())) {
-                if ("ADMIN".equals(user.getRole())) {
-                    new AdminFrame();
-                } else {
-                    JOptionPane.showMessageDialog(null, "Halaman USER belum dibuat");
-                }
-            }
+            JOptionPane.showMessageDialog(null, "Role tidak dikenali");
         }
     }
+
 }

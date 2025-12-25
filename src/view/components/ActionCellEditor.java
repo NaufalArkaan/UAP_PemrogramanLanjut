@@ -1,10 +1,13 @@
 package view.components;
 
-import javax.swing.*;
-import javax.swing.table.*;
-import java.awt.*;
+import controller.UserLaporanController;
 import view.admin.AdminFrame;
+import view.admin.DataPeralatanPanel;
 import view.admin.EditDataPeralatanDialog;
+
+import javax.swing.*;
+import javax.swing.table.TableCellEditor;
+import java.awt.*;
 
 public class ActionCellEditor extends AbstractCellEditor implements TableCellEditor {
 
@@ -21,47 +24,72 @@ public class ActionCellEditor extends AbstractCellEditor implements TableCellEdi
         JButton btnEdit   = createButton("Edit",  new Color(234,179,8));
         JButton btnDelete = createButton("Hapus", new Color(220,38,38));
 
+        /* ================= VIEW ================= */
         btnView.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row >= 0) {
                 String id = table.getValueAt(row, 0).toString();
-
                 Window w = SwingUtilities.getWindowAncestor(table);
                 if (w instanceof AdminFrame frame) {
                     frame.openDetailLaporan(id);
                 }
-                fireEditingStopped();
             }
+            fireEditingStopped();
         });
 
-
-// ===== EDIT =====
+        /* ================= EDIT ================= */
         btnEdit.addActionListener(e -> {
             int row = table.getSelectedRow();
             if (row >= 0) {
                 fireEditingStopped();
-                new EditDataPeralatanDialog(
-                        SwingUtilities.getWindowAncestor(table),
-                        table,
-                        row
-                ).setVisible(true);
+
+                // buka dialog (MODAL)
+                EditDataPeralatanDialog dialog =
+                        new EditDataPeralatanDialog(
+                                SwingUtilities.getWindowAncestor(table),
+                                table,
+                                row
+                        );
+                dialog.setVisible(true);
+
+                // 🔥 SETELAH DIALOG DITUTUP → REFRESH DATA
+                Component c = SwingUtilities.getAncestorOfClass(
+                        DataPeralatanPanel.class, table
+                );
+                if (c instanceof DataPeralatanPanel panel) {
+                    panel.reloadData();
+                }
             }
         });
 
+        /* ================= DELETE ================= */
         btnDelete.addActionListener(e -> {
             int row = table.getSelectedRow();
-            fireEditingStopped();
-            if (row >= 0) {
-                int confirm = JOptionPane.showConfirmDialog(
-                        table,
-                        "Yakin hapus data ini?",
-                        "Konfirmasi",
-                        JOptionPane.YES_NO_OPTION
+            if (row < 0) return;
+
+            String id = table.getValueAt(row, 0).toString();
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    table,
+                    "Yakin ingin menghapus laporan ini?\nID: " + id,
+                    "Konfirmasi Hapus",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                UserLaporanController.hapusLaporan(id);
+
+                // 🔥 refresh panel
+                Component c = SwingUtilities.getAncestorOfClass(
+                        DataPeralatanPanel.class, table
                 );
-                if (confirm == JOptionPane.YES_OPTION) {
-                    ((DefaultTableModel) table.getModel()).removeRow(row);
+                if (c instanceof DataPeralatanPanel panel) {
+                    panel.reloadData();
                 }
             }
+
+            fireEditingStopped();
         });
 
         panel.add(btnView);
@@ -72,7 +100,7 @@ public class ActionCellEditor extends AbstractCellEditor implements TableCellEdi
     private JButton createButton(String text, Color bg) {
         JButton btn = new JButton(text);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btn.setForeground(Color.BLACK);
+        btn.setForeground(Color.WHITE);
         btn.setBackground(bg);
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
@@ -90,6 +118,6 @@ public class ActionCellEditor extends AbstractCellEditor implements TableCellEdi
 
     @Override
     public Object getCellEditorValue() {
-        return null;
+        return "";
     }
 }

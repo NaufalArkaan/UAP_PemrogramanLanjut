@@ -1,231 +1,288 @@
 package view.admin;
 
+import controller.UserLaporanController;
+import model.LaporanBarang;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
+import java.io.File;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 
 public class DetailLaporanPanel extends JPanel {
+
     private final AdminFrame parentFrame;
-    private final String laporanId;
+    private LaporanBarang laporan;
+
+    /* ===== STYLE ===== */
+    private static final Color BG = new Color(245,246,250);
+    private static final Color CARD_BG = Color.WHITE;
+    private static final Color BORDER = new Color(220,220,220);
+
+    private static final Font H1 = new Font("Segoe UI", Font.BOLD, 18);
+    private static final Font H2 = new Font("Segoe UI", Font.BOLD, 14);
+    private static final Font LABEL = new Font("Segoe UI", Font.BOLD, 13);
+    private static final Font VALUE = new Font("Segoe UI", Font.PLAIN, 13);
 
     public DetailLaporanPanel(AdminFrame parentFrame, String laporanId) {
         this.parentFrame = parentFrame;
-        this.laporanId = laporanId;
+        this.laporan = UserLaporanController.getById(laporanId);
 
-        setLayout(new BorderLayout(16, 16));
-        setBackground(new Color(245, 246, 250));
-        setBorder(BorderFactory.createEmptyBorder(16,16,16,16));
-
-        add(createHeader(), BorderLayout.NORTH);
-        add(createContent(), BorderLayout.CENTER);
-    }
-
-    // ================= HEADER =================
-    private JPanel createHeader() {
-        JPanel header = new JPanel(new BorderLayout());
-        header.setOpaque(false);
-
-        JButton btnBack = new JButton("← Kembali");
-        btnBack.setFocusPainted(false);
-        btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        btnBack.addActionListener(e -> {
-            parentFrame.showPage("peralatan"); // 🔥 BALIK KE DATA PERALATAN
-        });
-
-        JLabel title = new JLabel("Detail Laporan Kerusakan");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 18));
-
-        JLabel lblId = new JLabel("ID: #" + laporanId);
-        lblId.setForeground(Color.GRAY);
-
-        header.add(btnBack, BorderLayout.WEST);
-        header.add(title, BorderLayout.CENTER);
-        header.add(lblId, BorderLayout.EAST);
-
-        return header;
-    }
-
-    // ================= CONTENT =================
-    private JPanel createContent() {
-        JPanel content = new JPanel(new GridLayout(1, 2, 20, 0));
-        content.setOpaque(false);
-
-        content.add(createLeftSection());
-        content.add(createRightSection());
-
-        return content;
-    }
-
-    // ================= LEFT =================
-    private JPanel createLeftSection() {
-        JPanel left = new JPanel();
-        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-        left.setOpaque(false);
-
-        left.add(infoPeralatan());
-        left.add(Box.createVerticalStrut(12));
-        left.add(infoKerusakan());
-        left.add(Box.createVerticalStrut(12));
-        left.add(updateStatus());
-
-        return left;
-    }
-
-    private JPanel infoPeralatan() {
-        JPanel panel = createCard("Informasi Peralatan");
-
-        panel.add(createLabel("Nama Peralatan", "Komputer PC-15"));
-        panel.add(createLabel("Jenis Peralatan", "Komputer"));
-        panel.add(createLabel("Lokasi", "Lab 1"));
-
-        return panel;
-    }
-
-    private JPanel infoKerusakan() {
-        JPanel panel = createCard("Informasi Kerusakan");
-
-        panel.add(createLabel("Jenis Kerusakan", "Hardware"));
-        panel.add(createMultiline(
-                "Deskripsi",
-                "Komputer tidak dapat menyala sama sekali. "
-                        + "Sudah dicoba tekan tombol power berulang kali "
-                        + "namun tidak ada respon."
-        ));
-        panel.add(createLabel("Tanggal Laporan", "14 Desember 2025"));
-        panel.add(createLabel("Pelapor", "Budi Santoso"));
-
-        return panel;
-    }
-
-    private JPanel updateStatus() {
-        JPanel panel = createCard("Update Status");
-
-        JLabel current = new JLabel("Status Saat Ini:  Rusak");
-        current.setForeground(new Color(185,28,28));
-        current.setFont(new Font("Segoe UI", Font.BOLD, 13));
-
-        JComboBox<String> cbStatus = new JComboBox<>(new String[]{
-                "Rusak", "Dalam Perbaikan", "Normal"
-        });
-
-        JTextArea catatan = new JTextArea(4, 20);
-        catatan.setLineWrap(true);
-        catatan.setWrapStyleWord(true);
-        catatan.setBorder(new LineBorder(new Color(200,200,200)));
-
-        JButton btnSave = new JButton("Simpan Perubahan");
-        btnSave.setBackground(new Color(14,64,160));
-        btnSave.setForeground(Color.WHITE);
-        btnSave.setFocusPainted(false);
-        btnSave.setBorder(BorderFactory.createEmptyBorder(8,16,8,16));
-
-        panel.add(current);
-        panel.add(Box.createVerticalStrut(8));
-        panel.add(new JLabel("Ubah Status"));
-        panel.add(cbStatus);
-        panel.add(Box.createVerticalStrut(8));
-        panel.add(new JLabel("Catatan Perbaikan"));
-        panel.add(new JScrollPane(catatan));
-        panel.add(Box.createVerticalStrut(12));
-        panel.add(btnSave);
-
-        return panel;
-    }
-
-    // ================= RIGHT =================
-    private JPanel createRightSection() {
-        JPanel right = new JPanel();
-        right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
-        right.setOpaque(false);
-
-        right.add(fotoKerusakan());
-        right.add(Box.createVerticalStrut(12));
-        right.add(riwayatAktivitas());
-
-        return right;
-    }
-
-    private JPanel fotoKerusakan() {
-        JPanel panel = createCard("Foto Kerusakan");
-
-        JLabel image = new JLabel("Tidak ada foto", SwingConstants.CENTER);
-        image.setPreferredSize(new Dimension(260, 200));
-        image.setBorder(new LineBorder(new Color(200,200,200)));
-        image.setForeground(Color.GRAY);
-
-        JPanel thumbs = new JPanel(new GridLayout(1,3,8,8));
-        thumbs.setOpaque(false);
-
-        for (int i = 0; i < 3; i++) {
-            JLabel t = new JLabel("📷", SwingConstants.CENTER);
-            t.setBorder(new LineBorder(new Color(220,220,220)));
-            thumbs.add(t);
+        if (laporan == null) {
+            JOptionPane.showMessageDialog(
+                    parentFrame,
+                    "Data laporan tidak ditemukan",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            parentFrame.showPage("peralatan");
+            return;
         }
 
-        panel.add(image);
-        panel.add(Box.createVerticalStrut(10));
-        panel.add(thumbs);
+        setLayout(new BorderLayout());
+        setBackground(BG);
+        setBorder(new EmptyBorder(16,16,16,16));
 
-        return panel;
+        add(header(), BorderLayout.NORTH);
+        add(content(), BorderLayout.CENTER);
     }
 
-    private JPanel riwayatAktivitas() {
-        JPanel panel = createCard("Riwayat Aktivitas");
+    /* ================= HEADER ================= */
 
-        JTextArea log = new JTextArea(
-                "14 Des 2025 10:30\n"
-                        + "Laporan dibuat oleh Budi Santoso\n\n"
-                        + "14 Des 2025 11:15\n"
-                        + "Status diubah: Dalam Perbaikan\n\n"
-                        + "14 Des 2025 14:20\n"
-                        + "Catatan: Sedang mengecek power supply"
+    private JComponent header() {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setOpaque(false);
+        p.setBorder(new EmptyBorder(0,0,16,0));
+
+        JButton back = new JButton("← Kembali");
+        back.addActionListener(e -> parentFrame.showPage("peralatan"));
+
+        JLabel title = new JLabel("Detail Laporan Kerusakan", SwingConstants.CENTER);
+        title.setFont(H1);
+
+        JLabel id = new JLabel("ID: " + laporan.getIdLaporan());
+        id.setForeground(Color.GRAY);
+
+        p.add(back, BorderLayout.WEST);
+        p.add(title, BorderLayout.CENTER);
+        p.add(id, BorderLayout.EAST);
+
+        return p;
+    }
+
+    /* ================= CONTENT ================= */
+
+    private JComponent content() {
+        JPanel wrapper = new JPanel(new GridBagLayout());
+        wrapper.setOpaque(false);
+
+        GridBagConstraints g = new GridBagConstraints();
+        g.fill = GridBagConstraints.BOTH;
+        g.weighty = 1;
+
+        g.gridx = 0;
+        g.weightx = 0.7;
+        wrapper.add(leftColumn(), g);
+
+        g.gridx = 1;
+        g.weightx = 0.05;
+        wrapper.add(Box.createHorizontalStrut(16), g);
+
+        g.gridx = 2;
+        g.weightx = 0.25;
+        wrapper.add(rightColumn(), g);
+
+        return wrapper;
+    }
+
+    /* ================= LEFT COLUMN ================= */
+
+    private JComponent leftColumn() {
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setOpaque(false);
+
+        p.add(infoPeralatan());
+        p.add(Box.createVerticalStrut(12));
+        p.add(infoKerusakan());
+        p.add(Box.createVerticalStrut(12));
+        p.add(updateStatus());
+
+        return p;
+    }
+
+    private JComponent infoPeralatan() {
+        JPanel c = new JPanel(new GridBagLayout());
+        c.setOpaque(false);
+
+        GridBagConstraints g = baseGrid();
+        addRow(c, g, 0, "Nama", laporan.getNamaBarang());
+        addRow(c, g, 1, "Jenis", laporan.getJenis());
+        addRow(c, g, 2, "Lokasi", laporan.getLokasi());
+
+        return card("Informasi Peralatan", c);
+    }
+
+    private JComponent infoKerusakan() {
+        JPanel c = new JPanel(new GridBagLayout());
+        c.setOpaque(false);
+
+        GridBagConstraints g = baseGrid();
+        addRow(c, g, 0, "Kerusakan", laporan.getKerusakan());
+        addRow(c, g, 1, "Deskripsi", laporan.getDeskripsi());
+        addRow(c, g, 2, "Tanggal", laporan.getTanggal());
+
+        return card("Informasi Kerusakan", c);
+    }
+
+    /* ================= UPDATE STATUS (FINAL FIX) ================= */
+
+    private JComponent updateStatus() {
+        JPanel c = new JPanel(new GridBagLayout());
+        c.setOpaque(false);
+
+        GridBagConstraints g = baseGrid();
+
+        g.gridx = 0;
+        g.gridy = 0;
+        c.add(label("Status"), g);
+
+        g.gridx = 1;
+        JComboBox<String> cb = new JComboBox<>(
+                new String[]{"Rusak","Dalam Perbaikan","Selesai"}
         );
-        log.setEditable(false);
-        log.setBackground(panel.getBackground());
+        cb.setSelectedItem(laporan.getStatus());
+        cb.setPreferredSize(new Dimension(200,32));
+        c.add(cb, g);
 
-        panel.add(new JScrollPane(log));
-        return panel;
+        g.gridy++;
+        g.gridx = 1;
+        g.anchor = GridBagConstraints.EAST;
+
+        JButton save = new JButton("Simpan Perubahan");
+        save.addActionListener(e -> {
+
+            String statusBaru = cb.getSelectedItem().toString();
+
+            boolean ok = UserLaporanController.updateStatus(
+                    laporan.getIdLaporan(),
+                    statusBaru
+            );
+
+            if (ok) {
+                // 🔥 FIX INTI: ambil ulang data dari CSV
+                laporan = UserLaporanController.getById(laporan.getIdLaporan());
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Status berhasil diperbarui",
+                        "Sukses",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+
+                parentFrame.showPage("peralatan");
+                parentFrame.refreshDashboard();
+            } else {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Gagal menyimpan perubahan",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        });
+
+        c.add(save, g);
+        return card("Update Status", c);
     }
 
-    // ================= HELPERS =================
-    private JPanel createCard(String title) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBackground(Color.WHITE);
-        panel.setBorder(new CompoundBorder(
-                new LineBorder(new Color(220,220,220)),
+    /* ================= RIGHT COLUMN ================= */
+
+    private JComponent rightColumn() {
+        JPanel p = new JPanel();
+        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
+        p.setOpaque(false);
+
+        p.add(foto());
+        return p;
+    }
+
+    private JComponent foto() {
+        JPanel c = new JPanel(new BorderLayout());
+        c.setOpaque(false);
+
+        JLabel img = new JLabel("Tidak ada foto", SwingConstants.CENTER);
+        img.setPreferredSize(new Dimension(220,260));
+        img.setBorder(new LineBorder(BORDER));
+
+        String path = laporan.getFotoPaths();
+        if (path != null && !path.isBlank()) {
+            try {
+                File f = new File(path);
+                if (f.exists()) {
+                    BufferedImage bi = ImageIO.read(f);
+                    Image scaled = bi.getScaledInstance(
+                            220,260,Image.SCALE_SMOOTH
+                    );
+                    img.setIcon(new ImageIcon(scaled));
+                    img.setText("");
+                }
+            } catch (Exception ignored) {}
+        }
+
+        c.add(img, BorderLayout.CENTER);
+        return card("Foto Kerusakan", c);
+    }
+
+    /* ================= HELPERS ================= */
+
+    private JPanel card(String title, JComponent content) {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(CARD_BG);
+        card.setBorder(new CompoundBorder(
+                new LineBorder(BORDER),
                 new EmptyBorder(12,12,12,12)
         ));
 
-        JLabel lbl = new JLabel(title);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        panel.add(lbl);
-        panel.add(Box.createVerticalStrut(10));
+        JLabel t = new JLabel(title);
+        t.setFont(H2);
+        t.setBorder(new EmptyBorder(0,0,8,0));
 
-        return panel;
+        card.add(t, BorderLayout.NORTH);
+        card.add(content, BorderLayout.CENTER);
+        return card;
     }
 
-    private JPanel createLabel(String label, String value) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.setOpaque(false);
-        p.add(new JLabel(label + ":"), BorderLayout.NORTH);
-        p.add(new JLabel(value), BorderLayout.CENTER);
-        return p;
+    private GridBagConstraints baseGrid() {
+        GridBagConstraints g = new GridBagConstraints();
+        g.insets = new Insets(6,6,6,6);
+        g.anchor = GridBagConstraints.WEST;
+        g.fill = GridBagConstraints.HORIZONTAL;
+        return g;
     }
 
-    private JPanel createMultiline(String label, String value) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.setOpaque(false);
-        p.add(new JLabel(label + ":"), BorderLayout.NORTH);
+    private void addRow(JPanel p, GridBagConstraints g, int y, String l, String v) {
+        g.gridy = y;
 
-        JTextArea ta = new JTextArea(value);
-        ta.setLineWrap(true);
-        ta.setWrapStyleWord(true);
-        ta.setEditable(false);
-        ta.setBackground(p.getBackground());
+        g.gridx = 0;
+        g.weightx = 0;
+        p.add(label(l), g);
 
-        p.add(ta, BorderLayout.CENTER);
-        return p;
+        g.gridx = 1;
+        g.weightx = 1;
+        p.add(value(v), g);
+    }
+
+    private JLabel label(String t) {
+        JLabel l = new JLabel(t);
+        l.setFont(LABEL);
+        return l;
+    }
+
+    private JLabel value(String t) {
+        JLabel v = new JLabel(t);
+        v.setFont(VALUE);
+        return v;
     }
 }

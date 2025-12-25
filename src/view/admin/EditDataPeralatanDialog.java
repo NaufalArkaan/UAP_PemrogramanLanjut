@@ -1,8 +1,9 @@
 package view.admin;
 
+import controller.UserLaporanController;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class EditDataPeralatanDialog extends JDialog {
@@ -29,7 +30,7 @@ public class EditDataPeralatanDialog extends JDialog {
         loadData();
     }
 
-    // ================= HEADER =================
+    /* ================= HEADER ================= */
     private JPanel header() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(new EmptyBorder(10,12,10,12));
@@ -41,21 +42,24 @@ public class EditDataPeralatanDialog extends JDialog {
         return panel;
     }
 
-    // ================= FORM =================
+    /* ================= FORM ================= */
     private JPanel form() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(new EmptyBorder(10,12,10,12));
 
         txtNama = new JTextField();
+        txtNama.setEnabled(false); // 🔒 READ ONLY
 
         cbJenis = new JComboBox<>(new String[]{
                 "Komputer","Monitor","Proyektor","Keyboard","Mouse","Printer"
         });
+        cbJenis.setEnabled(false); // 🔒 READ ONLY
 
         cbLokasi = new JComboBox<>(new String[]{
                 "Lab 1","Lab 2","Lab 3","Lab Multimedia"
         });
+        cbLokasi.setEnabled(false); // 🔒 READ ONLY
 
         cbStatus = new JComboBox<>(new String[]{
                 "Rusak","Perbaikan","Normal"
@@ -82,7 +86,7 @@ public class EditDataPeralatanDialog extends JDialog {
         return panel;
     }
 
-    // ================= ACTION =================
+    /* ================= ACTION ================= */
     private JPanel action() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         panel.setBorder(new EmptyBorder(8,12,8,12));
@@ -102,7 +106,7 @@ public class EditDataPeralatanDialog extends JDialog {
         return panel;
     }
 
-    // ================= LOAD & SAVE =================
+    /* ================= LOAD ================= */
     private void loadData() {
         txtNama.setText(table.getValueAt(row, 1).toString());
         cbJenis.setSelectedItem(table.getValueAt(row, 2));
@@ -110,21 +114,38 @@ public class EditDataPeralatanDialog extends JDialog {
         cbStatus.setSelectedItem(table.getValueAt(row, 5));
     }
 
+    /* ================= SAVE (FINAL FIX) ================= */
     private void save() {
-        DefaultTableModel model = (DefaultTableModel) table.getModel();
 
-        model.setValueAt(txtNama.getText(), row, 1);
-        model.setValueAt(cbJenis.getSelectedItem(), row, 2);
-        model.setValueAt(cbLokasi.getSelectedItem(), row, 3);
-        model.setValueAt(cbStatus.getSelectedItem(), row, 5);
+        String id = table.getValueAt(row, 0).toString();
+        String statusBaru = cbStatus.getSelectedItem().toString();
 
-        JOptionPane.showMessageDialog(
-                this,
-                "Data berhasil diperbarui",
-                "Sukses",
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        boolean ok = UserLaporanController.updateStatus(id, statusBaru);
 
-        dispose();
+        if (ok) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Status berhasil diperbarui",
+                    "Sukses",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+
+            // 🔥 RELOAD DATA PERALATAN
+            Component c = SwingUtilities.getAncestorOfClass(
+                    DataPeralatanPanel.class, table
+            );
+            if (c instanceof DataPeralatanPanel panel) {
+                panel.reloadData();
+            }
+
+            dispose();
+        } else {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Gagal memperbarui data",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 }

@@ -1,13 +1,19 @@
 package view.admin;
 
+import view.auth.LoginFrame;
+
 import javax.swing.*;
 import java.awt.*;
-import view.auth.LoginFrame;
-import view.admin.DetailLaporanPanel;
 
 public class AdminFrame extends JFrame {
+
     private CardLayout cardLayout;
     private JPanel contentPanel;
+
+    // ===== SIMPAN PANEL (SATU INSTANCE) =====
+    private DashboardPanel dashboardPanel;
+    private ReportsPanel reportsPanel;
+    private DataPeralatanPanel dataPeralatanPanel;
 
     public AdminFrame() {
         setTitle("Dashboard Admin - Sistem Monitoring Lab");
@@ -15,11 +21,11 @@ public class AdminFrame extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLayout(new BorderLayout());
 
-        // ===== SIDEBAR =====
+        /* ===== SIDEBAR (TIDAK DIUBAH) ===== */
         SidebarPanel sidebar = new SidebarPanel(this);
         add(sidebar, BorderLayout.WEST);
 
-        // ===== TOP BAR =====
+        /* ===== TOP BAR ===== */
         JPanel topBar = new JPanel(new BorderLayout());
         topBar.setBackground(new Color(14, 64, 160));
         topBar.setPreferredSize(new Dimension(0, 45));
@@ -31,29 +37,57 @@ public class AdminFrame extends JFrame {
 
         add(topBar, BorderLayout.NORTH);
 
-        // ===== CONTENT =====
+        /* ===== CONTENT ===== */
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         contentPanel.setBackground(new Color(245, 246, 250));
 
-        contentPanel.add(new DashboardPanel(), "dashboard");
-        contentPanel.add(new ReportsPanel(), "laporan");
-        contentPanel.add(new DataPeralatanPanel(), "peralatan"); // 🔥 BARU
+        // 🔥 INIT PANEL SEKALI (WAJIB)
+        dashboardPanel = new DashboardPanel();
+        reportsPanel = new ReportsPanel();
+        dataPeralatanPanel = new DataPeralatanPanel();
+
+        contentPanel.add(dashboardPanel, "dashboard");
+        contentPanel.add(reportsPanel, "laporan");
+        contentPanel.add(dataPeralatanPanel, "peralatan");
 
         add(contentPanel, BorderLayout.CENTER);
 
-        // halaman awal
-        showPage("dashboard");
+        /* ===== AUTO SYNC SAAT WINDOW AKTIF ===== */
+        addWindowFocusListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowGainedFocus(java.awt.event.WindowEvent e) {
+                dataPeralatanPanel.reloadData();
+                reportsPanel.reloadData();
+                refreshDashboard();
+            }
+        });
 
+        showPage("dashboard");
         setVisible(true);
     }
 
-    // ===== DIPANGGIL SIDEBAR =====
+    /* ===== DIPANGGIL SIDEBAR ===== */
     public void showPage(String page) {
+
+        // 🔥 AUTO RELOAD SAAT PINDAH PAGE
+        switch (page) {
+            case "dashboard" -> refreshDashboard();
+            case "laporan" -> reportsPanel.reloadData();
+            case "peralatan" -> dataPeralatanPanel.reloadData();
+        }
+
         cardLayout.show(contentPanel, page);
     }
 
-    // ===== LOGOUT DENGAN CONFIRM =====
+    /* ===== REFRESH DASHBOARD ===== */
+    public void refreshDashboard() {
+        if (dashboardPanel != null) {
+            dashboardPanel.refreshData();
+        }
+    }
+
+    /* ===== LOGOUT ===== */
     public void logout() {
         int confirm = JOptionPane.showConfirmDialog(
                 this,
@@ -69,14 +103,17 @@ public class AdminFrame extends JFrame {
         }
     }
 
-    // Tambahkan di AdminFrame.java
+    /* ===== DETAIL LAPORAN ===== */
     public void openDetailLaporan(String id) {
-        contentPanel.add(new DetailLaporanPanel(this, id), "detail");
+        DetailLaporanPanel detail = new DetailLaporanPanel(this, id);
+        contentPanel.add(detail, "detail");
         cardLayout.show(contentPanel, "detail");
     }
 
+    /* ===== TAMBAH DATA ===== */
     public void openTambahData() {
-        contentPanel.add(new TambahDataPeralatanPanel(this), "tambah");
+        TambahDataPeralatanPanel tambah = new TambahDataPeralatanPanel(this);
+        contentPanel.add(tambah, "tambah");
         cardLayout.show(contentPanel, "tambah");
     }
 }
